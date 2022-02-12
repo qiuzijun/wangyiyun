@@ -108,10 +108,11 @@ export function verificationLogin(data={}){
 export function banner(data={}){
     return instance({
         method:'post',
-        url:'/banner'+'?realIP=116.25.146.177',
+        url:'/banner',
         data:{
             operationType: 'banner',
-            type:data.type
+            type:data.type,
+            realIP:'116.25.146.177'
         }
     })
 }
