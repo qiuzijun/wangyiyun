@@ -7,10 +7,16 @@
           <p>{{ mvData.name }}</p>
         </div>
         <p>{{ mvData.artistName }}</p>
-        <div class="videoMv">
+        <div
+          class="videoMv"
+          id="videobox"
+          @mouseover="progress = true"
+          @mouseout="progress = false"
+        >
           <video
             class="media"
             ref="media"
+            id="video"
             @click="smallPlay"
             @ended="overVideo"
             @pause="onPause"
@@ -18,42 +24,63 @@
             @timeupdate="videoTime"
             :src="mvAddress.url"
           ></video>
-          <div class="icon">
-            <i class="suspend" ref="suspend" @click="smallPlay"></i>
-            <p>{{ time }}</p>
-            <div class="progress">
-              <el-slider
-                v-model="value3"
-                class="slider"
-                id="slider"
-                :show-tooltip="false"
-                @change="pageChange"
-              ></el-slider>
+          <div class="icon" :class="progress ? 'over_animation' : ''">
+            <div class="left">
+              <!-- 播放键 -->
+              <i class="suspend" ref="suspend" @click="smallPlay"></i>
             </div>
-            <p>{{ Time }}</p>
-            <div
-              class="icon_voice"
-              ref="icon_voice"
-              @mouseover="volumeShow = true"
-              @mouseout="volumeShow = false"
-            >
-              <div class="voice"></div>
-              <!-- 音量 -->
-              <div class="volume" v-show="volumeShow">
+            <div class="center">
+              <!-- 播放时间进度 -->
+              <p>{{ time }}</p>
+              <!-- 播放进度条 -->
+              <div class="progress">
                 <el-slider
-                  v-model="value"
+                  v-model="value3"
+                  class="slider"
+                  id="slider"
                   :show-tooltip="false"
-                  vertical
-                  height="87px"
-                  @input="volumeInput"
-                >
-                </el-slider>
-                <!-- 三角 -->
-                <div class="s_j"></div>
+                  @change="pageChange"
+                ></el-slider>
               </div>
+              <!-- 总播放时间 -->
+              <p>{{ Time }}</p>
             </div>
-            <p class="p">1080p</p>
-            <i class="icon_enlarge" @click="fullScreen"></i>
+            <div class="right">
+              <!-- 音量，全屏等 -->
+              <div
+                class="icon_voice"
+                ref="icon_voice"
+                @mouseover="volumeShow = true"
+                @mouseout="volumeShow = false"
+              >
+                <div class="voice"></div>
+                <!-- 音量 -->
+                <div class="volume" v-show="volumeShow">
+                  <el-slider
+                    v-model="value"
+                    :show-tooltip="false"
+                    vertical
+                    height="87px"
+                    @input="volumeInput"
+                  >
+                  </el-slider>
+                  <!-- 三角 -->
+                  <div class="s_j"></div>
+                </div>
+              </div>
+              <p class="p">1080p</p>
+              <i class="icon_enlarge" @click="fullScreen"></i>
+            </div>
+          </div>
+          <!-- 播放进度条 -->
+          <div class="progress" :class="progress ? '' : 'slider_animation'">
+            <el-slider
+              v-model="value3"
+              class="slider"
+              id="slider"
+              :show-tooltip="false"
+              @change="pageChange"
+            ></el-slider>
           </div>
           <i class="icon_suspend" v-show="suspendShow" @click="largePlay"></i>
           <i class="icon_fast" v-show="fastShow">
@@ -229,7 +256,7 @@ export default {
       time: "00:00", //实时播放时间
       fastShow: false, //快进隐藏
       offShow: false, //快退隐藏
-      Time: this.$moment(272000).format("mm:ss"),
+      Time: "",
       moveY: "",
       // 评论
       commentList: [],
@@ -243,6 +270,10 @@ export default {
       mvData: [],
       // mv地址
       mvAddress: [],
+      // 是否全屏
+      noFullScreen: false,
+      // 进度条栏动画
+      progress: true,
     };
   },
   methods: {
@@ -272,6 +303,8 @@ export default {
       }
       res.data.data.count = (res.data.data.playCount / 1000).toFixed(1);
       this.mvData = res.data.data;
+      document.title = res.data.data.name;
+      this.Time = this.$moment(res.data.data.duration).format("mm:ss");
     },
     // 获取mv评论
     async getComment() {
@@ -302,16 +335,17 @@ export default {
     },
     // 播放完毕
     overVideo() {
-      console.log("播放完毕");
+      // console.log("播放完毕");
       this.smallPlay();
     },
     // 暂停播放
     onPause() {
-      console.log("暂停播放");
+      // console.log("暂停播放");
+      this.progress = true;
     },
     // 开始播放
     onPlay() {
-      console.log("开始播放");
+      // console.log("开始播放");
     },
     // 实时播放时间
     videoTime(e) {
@@ -328,7 +362,7 @@ export default {
       let _this = this;
       document.onkeyup = function (event) {
         //键盘事件
-        var e = event || window.event || arguments.callee.caller.arguments[0];
+        let e = event || window.event || arguments.callee.caller.arguments[0];
         //鼠标上下键控制视频音量
         if (e && e.keyCode === 37) {
           // 按 向左键
@@ -382,12 +416,117 @@ export default {
     },
     // 全屏
     fullScreen() {
-      document.getElementsByClassName("media")[0].style.width =
-        document.documentElement.clientWidth + "px";
-      document.getElementsByClassName("media")[0].style.height =
-        document.documentElement.clientHeight + "px";
-      document.getElementsByClassName("icon")[0].style.width =
-        document.documentElement.clientWidth + "px";
+      if (this.noFullScreen) {
+        // 退出全屏
+        this.exitFullscreen();
+        this.noFullScreen = false;
+      } else {
+        // 全屏
+        this.launchFullscreen(document.getElementById("videobox"));
+        this.noFullScreen = true;
+      }
+      // window.setTimeout(function exit() {
+      //   //檢查瀏覽器是否處於全屏
+      //   if (
+      //     this.invokeFieldOrMethod(document, "FullScreen") ||
+      //     this.invokeFieldOrMethod(document, "IsFullScreen") ||
+      //     document.IsFullScreen
+      //   ) {
+      //     this.exitFullscreen();
+      //   }
+      // }, 5 * 1000);
+    },
+    //反射調用
+    invokeFieldOrMethod(element, method) {
+      var usablePrefixMethod;
+      ["webkit", "moz", "ms", "o", ""].forEach(function (prefix) {
+        if (usablePrefixMethod) return;
+        if (prefix === "") {
+          // 无前缀，方法首字母小写
+          method = method.slice(0, 1).toLowerCase() + method.slice(1);
+        }
+        var typePrefixMethod = typeof element[prefix + method];
+        if (typePrefixMethod + "" !== "undefined") {
+          if (typePrefixMethod === "function") {
+            usablePrefixMethod = element[prefix + method]();
+          } else {
+            usablePrefixMethod = element[prefix + method];
+          }
+        }
+      });
+
+      return usablePrefixMethod;
+    },
+    //進入全屏
+    launchFullscreen(element) {
+      //此方法不可以在異步任務中執行，否則火狐無法全屏
+      if (element.requestFullscreen) {
+        document.getElementById("video").style.height = "1040px";
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) {
+        document.getElementById("video").style.height = "1040px";
+        element.mozRequestFullScreen();
+      } else if (element.msRequestFullscreen) {
+        document.getElementById("video").style.height = "1040px";
+        element.msRequestFullscreen();
+      } else if (element.oRequestFullscreen) {
+        document.getElementById("video").style.height = "1040px";
+        element.oRequestFullscreen();
+      } else if (element.webkitRequestFullscreen) {
+        document.getElementById("video").style.height = "1040px";
+        element.webkitRequestFullScreen();
+      } else {
+        var docHtml = document.documentElement;
+        var docBody = document.body;
+        var videobox = document.getElementById("videobox");
+        document.getElementById("video").style.height = "1040px";
+        var cssText = "width:100%;height:100%;overflow:hidden;";
+        docHtml.style.cssText = cssText;
+        docBody.style.cssText = cssText;
+        videobox.style.cssText = cssText + ";" + "margin:0px;padding:0px;";
+        document.IsFullScreen = true;
+      }
+    },
+    fullele() {
+      return (
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.msFullscreenElement ||
+        document.mozFullScreenElement ||
+        null
+      );
+    },
+    //判断是否全屏
+    isFullScreen() {
+      return !!(document.webkitIsFullScreen || this.fullele());
+    },
+    //退出全屏
+    exitFullscreen() {
+      if (document.exitFullscreen) {
+        document.getElementById("video").style.height = "360px";
+        document.exitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.getElementById("video").style.height = "360px";
+        document.msExitFullscreen();
+      } else if (document.mozCancelFullScreen) {
+        document.getElementById("video").style.height = "360px";
+        document.mozCancelFullScreen();
+      } else if (document.oRequestFullscreen) {
+        document.getElementById("video").style.height = "360px";
+        document.oCancelFullScreen();
+      } else if (document.webkitExitFullscreen) {
+        document.getElementById("video").style.height = "360px";
+        document.webkitExitFullscreen();
+      } else {
+        var docHtml = document.documentElement;
+        var docBody = document.body;
+        var videobox = document.getElementById("videobox");
+        document.getElementById("video").style.height = "360px";
+        docHtml.style.cssText = "";
+        docBody.style.cssText = "";
+        videobox.style.cssText = "";
+        document.IsFullScreen = false;
+      }
     },
     // 改变音量
     volumeInput(e) {
@@ -418,6 +557,13 @@ export default {
     }
   },
   mounted() {
+    // Esc键退出全屏
+    let that = this;
+    window.addEventListener("resize", function () {
+      if (!that.isFullScreen()) {
+        document.getElementById("video").style.height = "360px";
+      }
+    });
     // 快进与快退
     this.fastForward();
     this.$nextTick(() => {
@@ -439,7 +585,7 @@ export default {
   border-left: 1px solid #d3d3d3;
   border-right: 1px solid #d3d3d3;
   overflow: hidden;
-  .left {
+  > .left {
     width: 708px;
     background-color: white;
     border-right: 1px solid #d3d3d3;
@@ -473,6 +619,7 @@ export default {
         background-color: black;
         margin-top: 10px;
         position: relative;
+        overflow: hidden;
         .media {
           width: 100%;
           height: 360px;
@@ -481,173 +628,200 @@ export default {
           width: 100%;
           height: 28px;
           position: absolute;
-          bottom: 0px;
+          bottom: -28px;
           display: flex;
           justify-content: space-between;
           align-items: center;
           color: rgba(255, 255, 255, 0.5);
-          .suspend {
-            width: 34px;
-            height: 32px;
-            float: left;
-            background-image: url("../assets/img/icon_mv_suspend.png");
-            background-repeat: no-repeat;
-            background-position: center;
-            margin-left: 5px;
-            margin-bottom: 5px;
-            &:hover {
-              cursor: pointer;
-              background-image: url("../assets/img/icon_mv_suspend_1.png");
-            }
-          }
-          .icon-play {
-            width: 34px;
-            height: 32px;
-            float: left;
-            background-image: url("../assets/img/icon_mv_play.png");
-            background-repeat: no-repeat;
-            background-position: center;
-            margin-left: 5px;
-            margin-bottom: 5px;
-            &:hover {
-              cursor: pointer;
-              background-image: url("../assets/img/icon_mv_play_1.png");
-            }
-          }
-          .progress {
-            width: 383px;
-            height: 4px;
-            background-color: #333;
-            border-radius: 2px;
-            position: relative;
-            .bk_color {
-              width: 0%;
-              height: 4px;
-              background-color: red;
-              border-radius: 2px;
-              position: absolute;
-              top: 0px;
-              left: 0px;
-            }
-            .icon_d {
-              width: 24px;
-              height: 24px;
-              background-image: url("../assets/img/icon_j_1.png");
+          transition: all 0.2s;
+          .left {
+            width: 7%;
+            height: 28px;
+            // background-color: red;
+            .suspend {
+              width: 34px;
+              height: 32px;
+              background-image: url("../assets/img/icon_mv_suspend.png");
               background-repeat: no-repeat;
               background-position: center;
-              position: absolute;
-              top: -10px;
-              left: -3%;
+              margin-left: 5px;
+              margin-bottom: 5px;
+              float: left;
               &:hover {
                 cursor: pointer;
-                background-image: url("../assets/img/icon_j_2.png");
+                background-image: url("../assets/img/icon_mv_suspend_1.png");
               }
             }
-            .slider {
-              margin-top: -16px;
-            }
-          }
-          .p {
-            &:hover {
-              color: white;
-              cursor: pointer;
-            }
-          }
-          .icon_voice {
-            width: 24px;
-            height: 100px;
-            top: -44px;
-            position: relative;
-            .voice {
-              width: 16px;
-              height: 12px;
-              background-image: url("../assets/img/icon_s_1.png");
+            .icon-play {
+              width: 34px;
+              height: 32px;
+              float: left;
+              background-image: url("../assets/img/icon_mv_play.png");
               background-repeat: no-repeat;
+              background-position: center;
+              margin-left: 5px;
+              margin-bottom: 5px;
               &:hover {
-                background-image: url("../assets/img/icon_s_2.png");
+                cursor: pointer;
+                background-image: url("../assets/img/icon_mv_play_1.png");
+              }
+            }
+          }
+          .center {
+            width: 75%;
+            height: 28px;
+            // background-color: pink;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .progress {
+              width: 80%;
+              height: 4px;
+              background-color: #333;
+              border-radius: 2px;
+              position: relative;
+              .bk_color {
+                width: 0%;
+                height: 4px;
+                background-color: red;
+                border-radius: 2px;
+                position: absolute;
+                top: 0px;
+                left: 0px;
+              }
+              .icon_d {
+                width: 24px;
+                height: 24px;
+                background-image: url("../assets/img/icon_j_1.png");
+                background-repeat: no-repeat;
+                background-position: center;
+                position: absolute;
+                top: -10px;
+                left: -3%;
+                &:hover {
+                  cursor: pointer;
+                  background-image: url("../assets/img/icon_j_2.png");
+                }
+              }
+              .slider {
+                margin-top: -16px;
+              }
+            }
+          }
+          .right {
+            width: 18%;
+            height: 28px;
+            // background-color: skyblue;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            .p {
+              &:hover {
+                color: white;
                 cursor: pointer;
               }
-              position: absolute;
-              bottom: 0px;
-              left: 5px;
             }
-            .volume {
+
+            .icon_voice {
               width: 24px;
-              height: 87px;
-              border: 1px solid rgba(255, 255, 255, 0.2);
-              background: rgba(0, 0, 0, 0.7);
-              position: absolute;
-              bottom: 20px;
-              right: 0px;
-              .s_j {
-                width: 12px;
-                height: 7px;
-                background-image: url("../assets/img/s_j.png");
+              height: 100px;
+              top: -44px;
+              position: relative;
+              .voice {
+                width: 16px;
+                height: 12px;
+                background-image: url("../assets/img/icon_s_1.png");
                 background-repeat: no-repeat;
-                position: relative;
-                top: 5px;
+                &:hover {
+                  background-image: url("../assets/img/icon_s_2.png");
+                  cursor: pointer;
+                }
+                position: absolute;
+                bottom: 0px;
                 left: 5px;
               }
-            }
-          }
-          .icon_noVolume {
-            width: 24px;
-            height: 100px;
-            top: -44px;
-            position: relative;
-            .voice {
-              width: 16px;
-              height: 12px;
-              background-image: url("../assets/img/no_volume_1.png");
-              background-repeat: no-repeat;
-              &:hover {
-                background-image: url("../assets/img/no_volume_2.png");
-                cursor: pointer;
+              .volume {
+                width: 24px;
+                height: 87px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(0, 0, 0, 0.7);
+                position: absolute;
+                bottom: 20px;
+                right: 0px;
+                .s_j {
+                  width: 12px;
+                  height: 7px;
+                  background-image: url("../assets/img/s_j.png");
+                  background-repeat: no-repeat;
+                  position: relative;
+                  top: 5px;
+                  left: 5px;
+                }
               }
-              position: absolute;
-              bottom: 0px;
-              left: 5px;
             }
-            .volume {
+            .icon_noVolume {
               width: 24px;
-              height: 87px;
-              border: 1px solid rgba(255, 255, 255, 0.2);
-              background: rgba(0, 0, 0, 0.7);
-              position: absolute;
-              bottom: 20px;
-              right: 0px;
-              .s_j {
-                width: 12px;
-                height: 7px;
-                background-image: url("../assets/img/s_j.png");
+              height: 100px;
+              top: -44px;
+              position: relative;
+              .voice {
+                width: 16px;
+                height: 12px;
+                background-image: url("../assets/img/no_volume_1.png");
                 background-repeat: no-repeat;
-                position: relative;
-                top: 5px;
+                &:hover {
+                  background-image: url("../assets/img/no_volume_2.png");
+                  cursor: pointer;
+                }
+                position: absolute;
+                bottom: 0px;
                 left: 5px;
               }
+              .volume {
+                width: 24px;
+                height: 87px;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                background: rgba(0, 0, 0, 0.7);
+                position: absolute;
+                bottom: 20px;
+                right: 0px;
+                .s_j {
+                  width: 12px;
+                  height: 7px;
+                  background-image: url("../assets/img/s_j.png");
+                  background-repeat: no-repeat;
+                  position: relative;
+                  top: 5px;
+                  left: 5px;
+                }
+              }
+            }
+            .icon_enlarge {
+              width: 34px;
+              height: 34px;
+              background-image: url("../assets/img/icon_f_1.png");
+              background-repeat: no-repeat;
+              margin-top: 20px;
+              &:hover {
+                background-image: url("../assets/img/icon_f_2.png");
+                cursor: pointer;
+              }
             }
           }
-          .icon_enlarge {
-            width: 34px;
-            height: 34px;
-            background-image: url("../assets/img/icon_f_1.png");
-            background-repeat: no-repeat;
-            margin-top: 20px;
-            &:hover {
-              background-image: url("../assets/img/icon_f_2.png");
-              cursor: pointer;
-            }
-          }
+        }
+        .over_animation {
+          bottom: 0px;
+          transition: all 0.2s;
         }
         .icon_suspend {
           width: 74px;
           height: 74px;
           background-image: url("../assets/img/icon_mv_D_1.png");
           background-repeat: no-repeat;
-          background-position: center;
           position: absolute;
-          top: 130px;
-          left: 255px;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
           &:hover {
             background-image: url("../assets/img/icon_mv_D.png");
             cursor: pointer;
@@ -657,15 +831,28 @@ export default {
           width: 74px;
           height: 74px;
           position: absolute;
-          top: 130px;
-          left: 255px;
+          top: 40%;
+          left: 50%;
+          transform: translate(-50%, -50%);
         }
         .icon_off {
           width: 74px;
           height: 74px;
           position: absolute;
-          top: 130px;
-          left: 255px;
+          top: 40%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+        > .progress {
+          position: relative;
+          bottom: -100px;
+          /deep/.el-slider__button {
+            background-image: none;
+          }
+        }
+        .slider_animation {
+          bottom: 24px;
+          transition: all 0.2s;
         }
       }
       .comment {

@@ -1,9 +1,9 @@
 <template>
   <div class="songListInformation">
     <div class="left">
-      <div class="songText" v-if="list.length > 0 ? false : true">
+      <div class="songText" v-if="songListInformation">
         <img
-          :src="list.playlist.coverImgUrl"
+          v-lazy="list.playlist.coverImgUrl"
           alt=""
           width="200px"
           height="200px"
@@ -16,7 +16,7 @@
           </div>
           <div class="establishName">
             <img
-              :src="list.playlist.creator.avatarUrl"
+              v-lazy="list.playlist.creator.coverImgUrl"
               alt=""
               width="40px"
               height="40px"
@@ -125,7 +125,7 @@
                     <p>
                       <span
                         v-for="data in item.ar"
-                        :key="data.id"
+                        :key="data.name"
                         @click="routeSinger(data.id, data.name, item.al.picUrl)"
                         >{{ data.name }}/</span
                       >
@@ -181,7 +181,7 @@
               <ul>
                 <li v-for="item in commentList.comments" :key="item.commentId">
                   <img
-                    :src="item.user.avatarUrl"
+                    v-lazy="item.user.avatarUrl"
                     alt=""
                     width="50px"
                     height="50px"
@@ -223,11 +223,11 @@
         </div>
       </div>
     </div>
-    <div class="right">
+    <div class="right" v-if="songListInformation">
       <p>喜欢这个歌单的人</p>
       <ul>
-        <li v-for="item in list.playlist.subscribers" :key="item.id">
-          <img :src="item.avatarUrl" alt="" width="40px" height="40px" />
+        <li v-for="item in list.playlist.subscribers" :key="item.userId">
+          <img v-lazy="item.avatarUrl" alt="" width="40px" height="40px" />
         </li>
       </ul>
     </div>
@@ -250,6 +250,7 @@ export default {
       list: [],
       //   歌单id
       songListId: "",
+      songListInformation: false,
     };
   },
   methods: {
@@ -294,6 +295,7 @@ export default {
         data.songTime = this.$moment(data.dt).format("mm:ss");
       });
       this.list = res.data;
+      this.songListInformation = true;
     },
     // 分页页码
     pageIndexChange(e) {

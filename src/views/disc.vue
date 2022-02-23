@@ -3,7 +3,7 @@
     <div class="left">
       <div class="songText" v-if="list.length > 0 ? false : true">
         <div class="top">
-          <img :src="list.album.picUrl" alt="" width="200px" height="200px" />
+          <img v-lazy="list.album.picUrl" alt="" width="200px" height="200px" />
           <div class="bk"></div>
           <div class="g_d_content">
             <div class="name">
@@ -172,7 +172,7 @@
               <ul>
                 <li v-for="item in commentList.comments" :key="item.commentId">
                   <img
-                    :src="item.user.avatarUrl"
+                    v-lazy="item.user.avatarUrl"
                     alt=""
                     width="50px"
                     height="50px"

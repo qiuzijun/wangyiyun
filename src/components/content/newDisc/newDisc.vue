@@ -34,7 +34,13 @@
                 />
               </a>
 
-              <img :src="item.picUrl" alt="" width="100px" height="100px" />
+              <img
+                v-lazy="item.picUrl"
+                :alt="item.name"
+                :title="item.name"
+                width="100px"
+                height="100px"
+              />
               <router-link :to="item.name" :title="item.name">
                 <p>{{ item.name }}</p>
               </router-link>
@@ -116,7 +122,6 @@ export default {
         this.index = 1;
         this.$refs.disc.style.left = this.index * -645 + "px";
       } else {
-        console.log(this.index);
         this.$refs.disc.style.left = this.index * 645 + "px";
       }
     },
@@ -134,8 +139,10 @@ export default {
       }
       // console.log(res);
       // 取前10
-      for (let i = 0; i < 10; i++) {
-        this.list.push(res.data.monthData[i]);
+      if (res.data.monthData.length == 0) {
+        this.list = res.data.weekData.slice(0, 10);
+      } else {
+        this.list = res.data.monthData.slice(0, 10);
       }
       this.list.forEach((data) => {
         data.playW = require("../../../assets/img/play_02.png");

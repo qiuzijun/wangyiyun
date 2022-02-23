@@ -70,9 +70,9 @@
                   <img
                     :src="imgNumber == index ? data.twoImg : data.oneImg"
                     alt=""
-                    v-for="(data, index) in imgList"
-                    :key="index"
-                    @mouseover="imgOver(index)"
+                    v-for="(data, Index) in imgList"
+                    :key="Index"
+                    @mouseover="imgOver(Index)"
                     @click="soaringPlay(item.id)"
                   />
                 </div>
@@ -87,6 +87,7 @@
 <script>
 import axios from "axios";
 import { soaring } from "@/api/http.js";
+import { mapState } from "vuex";
 export default {
   data() {
     return {
@@ -124,7 +125,23 @@ export default {
       soaringImg: [],
       // 榜单id
       listId: [],
+      // 判断播放歌单列表是否为空
+      listIsUndefined: true,
     };
+  },
+  computed: {
+    ...mapState(["songSheetList"]),
+  },
+  watch: {
+    songSheetList: {
+      handler(newName) {
+        if (newName.length == 0) {
+          this.listIsUndefined = true;
+        } else {
+          this.listIsUndefined = false;
+        }
+      },
+    },
   },
   methods: {
     // 移入播放键
@@ -153,7 +170,6 @@ export default {
     soaringPlay(id) {
       // 传递id值
       this.$store.dispatch("playId", id);
-      // console.log(id);
     },
     // 传递榜单id
     passId(id) {
@@ -178,42 +194,29 @@ export default {
     async getSoaring() {
       let res = await axios.get("/api/playlist/detail?id=19723756");
       // 获取前10歌曲
-      for (let i = 0; i < 11; i++) {
-        this.soaringList.push(res.data.playlist.tracks[i]);
-      }
+      this.soaringList = res.data.playlist.tracks.slice(0, 11);
       this.soaringList.forEach((data, index) => {
         data.Id = index;
-        // data.listName = "飙升榜";
       });
       this.listId.push(this.soaringList);
-      // 获取新歌
-      this.getNewSong();
     },
     // 获取新歌
     async getNewSong() {
       let res = await axios.get("/api/playlist/detail?id=3779629");
       // 获取前10歌曲
-      for (let i = 0; i < 11; i++) {
-        this.newSongList.push(res.data.playlist.tracks[i]);
-      }
+      this.newSongList = res.data.playlist.tracks.slice(0, 11);
       this.newSongList.forEach((data, index) => {
         data.Id = index;
-        // data.listName = "新歌榜";
       });
       this.listId.push(this.newSongList);
-      // 获取原创
-      this.getOriginal();
     },
     // 获取原创
     async getOriginal() {
       let res = await axios.get("/api/playlist/detail?id=2884035");
       // 获取前10歌曲
-      for (let i = 0; i < 11; i++) {
-        this.originalList.push(res.data.playlist.tracks[i]);
-      }
+      this.originalList = res.data.playlist.tracks.slice(0, 11);
       this.originalList.forEach((data, index) => {
         data.Id = index;
-        // data.listName = "原创榜";
       });
       this.listId.push(this.originalList);
     },
@@ -229,10 +232,13 @@ export default {
     },
   },
   mounted() {
-    // 获取榜单信息
-    this.getListInformation();
-    // 获取飙升榜
-    this.getSoaring();
+    let requestAll = [
+      this.getListInformation(),
+      this.getSoaring(),
+      this.getNewSong(),
+      this.getOriginal(),
+    ];
+    Promise.all(requestAll);
   },
 };
 </script>

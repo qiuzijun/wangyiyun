@@ -23,7 +23,7 @@
               />
 
               <img
-                :src="item.coverImgUrl"
+                v-lazy="item.coverImgUrl"
                 alt=""
                 width="140px"
                 height="140px"

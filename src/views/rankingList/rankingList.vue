@@ -10,7 +10,7 @@
             :key="item.id"
             @click="featureList(item.id)"
           >
-            <img :src="item.coverImgUrl" alt="" width="40px" height="40px" />
+            <img v-lazy="item.coverImgUrl" alt="" width="40px" height="40px" />
             <div class="name">
               <p>{{ item.name }}</p>
               <p>{{ item.updateFrequency }}</p>
@@ -27,7 +27,7 @@
             :key="item.id"
             @click="mediaList(item.id)"
           >
-            <img :src="item.coverImgUrl" alt="" width="40px" height="40px" />
+            <img v-lazy="item.coverImgUrl" alt="" width="40px" height="40px" />
             <div class="name">
               <p>{{ item.name }}</p>
               <p>{{ item.updateFrequency }}</p>
@@ -41,7 +41,7 @@
       <div class="topName">
         <div class="img">
           <img
-            :src="playlist.coverImgUrl"
+            v-lazy="playlist.coverImgUrl"
             alt=""
             width="150px"
             height="150px"
@@ -123,7 +123,7 @@
                 </div>
                 <div class="name_img">
                   <img
-                    :src="item.al.picUrl"
+                    v-lazy="item.al.picUrl"
                     alt=""
                     width="50px"
                     height="50px"
@@ -208,7 +208,7 @@
             <ul>
               <li v-for="item in commentList.comments" :key="item.commentId">
                 <img
-                  :src="item.user.avatarUrl"
+                  v-lazy="item.user.avatarUrl"
                   alt=""
                   width="50px"
                   height="50px"

@@ -34,7 +34,7 @@
         <ul>
           <li v-for="item in artistList.slice(0, 10)" :key="item.id">
             <div class="img">
-              <img :src="item.picUrl" alt="" width="130px" height="130px" />
+              <img v-lazy="item.picUrl" alt="" width="130px" height="130px" />
               <img
                 src="../../assets/img/icon-coverall.png"
                 alt=""

@@ -32,7 +32,7 @@
             <router-link to="" :title="item.name">
               <img src="../../../assets/img/icon-coverall.png" alt="" />
             </router-link>
-            <img :src="item.picUrl" alt="" width="140px" height="140px" />
+            <img v-lazy="item.picUrl" alt="" width="140px" height="140px" />
           </div>
           <div class="heat">
             <img

@@ -50,6 +50,11 @@
         <!-- 歌名 -->
         <div class="name">
           <a href="">{{ songsDetail.name }}</a>
+          <i
+            class="whether_mv"
+            @click="routeMv(songsDetail.mv)"
+            v-if="songsDetail.mv !== 0 ? true : false"
+          ></i>
           <span>
             <span
               @click="routeSinger(item.id, item.name, songsDetail.Url)"
@@ -57,6 +62,7 @@
               :key="item.id"
               >{{ item.name }}/</span
             >
+
             <a href="">
               <img
                 :src="link"
@@ -231,7 +237,7 @@
                 <div class="roller_body" ref="rollerBar" id="rollerBar"></div>
               </div>
             </div>
-            <div class="lyric">
+            <div class="lyric" id="lyric">
               <div class="content" ref="lyric_height">
                 <ul>
                   <li
@@ -239,7 +245,9 @@
                     :key="index"
                     ref="lyricLi"
                   >
-                    <p>{{ item.name }}</p>
+                    <p>
+                      {{ item.name }}
+                    </p>
                   </li>
                 </ul>
                 <!-- 歌词滚轮 -->
@@ -387,16 +395,6 @@ export default {
     };
   },
   watch: {
-    // // 监听歌词是否渲染
-    // lyricList: {
-    //   handler: function (newName) {
-    //     if (newName.length > 0) {
-    //       // 计算歌词滚轮高度
-    //       this.lyricHeight();
-    //     }
-    //   },
-    //   deep: true,
-    // },
     // 监听歌曲详情
     songsDetail: {
       handler: function (newName) {
@@ -539,7 +537,7 @@ export default {
       for (let i = 0; i < res.data.lrc.lyric.split("]").length; i++) {
         if (res.data.lrc.lyric.split("]")[i].split("[")[0] !== "") {
           this.lyricList.push({
-            time: res.data.lrc.lyric.split("]")[i - 1].split("[")[1],
+            time: res.data.lrc.lyric.split("]")[i - 1].split("[")[1].split("."),
             name: res.data.lrc.lyric.split("]")[i].split("[")[0],
           });
         }
@@ -565,9 +563,9 @@ export default {
         this.songsDetail.Url = data.al.picUrl;
         this.songsDetail.singer = data.ar;
         this.songsDetail.time = data.dt;
+        this.songsDetail.mv = data.mv;
         this.songsDetail.analysisTime = this.$moment(data.dt).format("mm:ss");
       });
-      // console.log(this.songsDetail);
       // 存储最后一次的歌曲
       localStorage.setItem("detail", JSON.stringify(this.songsDetail));
     },
@@ -576,6 +574,7 @@ export default {
       // 修改网页标题
       document.title = this.songsDetail.name;
       this.musicGif = true;
+      this.lyricTop = 0;
       // console.log("开始播放声音");
       // console.log(this.$refs.audioRef.buffered.start(0));
       // console.log(this.$refs.audioRef.buffered.end(0));
@@ -594,6 +593,7 @@ export default {
     //播放完毕执行
     overAudio() {
       this.musicGif = false;
+      this.lyricTop = 0;
       this.img_play = this.playList.musicPlay_01;
       setTimeout(() => {
         // 播放完毕回归进度条
@@ -834,80 +834,16 @@ export default {
           (this.songSheetHeight - this.$refs.contentList.offsetHeight) +
         "px";
     },
-    // // 计算歌词滚轮高度
-    // lyricHeight() {
-    //   let lyricHeight = this.$refs.lyric_height.offsetHeight;
-    //   let liHeight = 0;
-    //   this.$nextTick(() => {
-    //     this.$refs.lyricLi.forEach((data) => {
-    //       liHeight += data.offsetHeight * 1;
-    //     });
-    //     // 歌词高度
-    //     this.$refs.roller_lyric.style.height =
-    //       (lyricHeight / liHeight) * lyricHeight + "px";
-    //   });
-    // },
-    // //拖拽歌词滚轮
-    // lyricMouseMove() {
-    //   let bar = document.getElementById("roller_lyric");
-    //   bar.addEventListener("mousedown", (e) => {
-    //     e.preventDefault();
-    //     this.lyric_y = e.pageY;
-    //     document.onmousemove = (e) => {
-    //       let rollerY = e.pageY - this.lyric_y;
-    //       this.$refs.roller_lyric.style.top = bar.offsetTop + rollerY + "px";
-    //       this.lyric_y = e.pageY;
-    //       // 判断上边界
-    //       if (bar.offsetTop < 0) {
-    //         this.$refs.roller_lyric.style.top = 0 + "px";
-    //       }
-    //       // 判断下边界
-    //       if (
-    //         this.$refs.roller_lyric.offsetHeight + bar.offsetTop >
-    //         this.$refs.lyric_height.offsetHeight
-    //       ) {
-    //         this.$refs.roller_lyric.style.top =
-    //           this.$refs.lyric_height.offsetHeight -
-    //           this.$refs.roller_lyric.offsetHeight +
-    //           "px";
-    //       }
-    //       // 计算歌单列表滚动距离
-    //       let scrollTop =
-    //         (bar.offsetTop *
-    //           (this.songSheetHeight - this.$refs.lyric_height.offsetHeight)) /
-    //         (this.$refs.lyric_height.offsetHeight -
-    //           this.$refs.roller_lyric.offsetHeight);
-    //       this.$refs.lyric_height.scrollTop = scrollTop;
-    //     };
-    //     document.onmouseup = () => {
-    //       document.onmousemove = null;
-    //     };
-    //   });
-    // },
-    // // 歌词滚轮事件
-    // lyricScroll(e) {
-    //   let bar = document.getElementById("roller_lyric");
-    //   this.$refs.roller_lyric.style.top =
-    //     (e.target.scrollTop *
-    //       (this.$refs.lyric_height.offsetHeight -
-    //         this.$refs.roller_lyric.offsetHeight)) /
-    //       (this.songSheetHeight - this.$refs.lyric_height.offsetHeight) +
-    //     "px";
-    //   // 判断下边界
-    //   if (
-    //     this.$refs.roller_lyric.offsetHeight + bar.offsetTop >
-    //     this.$refs.lyric_height.offsetHeight
-    //   ) {
-    //     this.$refs.roller_lyric.style.top =
-    //       this.$refs.lyric_height.offsetHeight -
-    //       this.$refs.roller_lyric.offsetHeight +
-    //       "px";
-    //   }
-    // },
-    // 点击歌单列表播放
     songListPlaying(id) {
       // 点击列表传递id值
       this.$store.dispatch("playId", id);
+      this.$router.push({
+        name: "lyric",
+        params: {
+          id,
+        },
+      });
+      localStorage.setItem("lyricId", id);
     },
     // 左切歌
     leftClick() {
@@ -989,6 +925,16 @@ export default {
         },
       });
       localStorage.setItem("lyricId", id);
+    },
+    // 播放mv
+    routeMv(id) {
+      this.$router.push({
+        name: "mv",
+        params: {
+          id,
+        },
+      });
+      localStorage.setItem("mvId", id);
     },
   },
   mounted() {
@@ -1080,6 +1026,18 @@ export default {
           margin-right: 15px;
           &:hover {
             text-decoration: underline;
+          }
+        }
+        .whether_mv {
+          width: 17px;
+          height: 17px;
+          margin-right: 5px;
+          display: inline-block;
+          background-repeat: no-repeat;
+          background-position: 0px 4px;
+          background-image: url("../../assets/img/whetherMv_1.png");
+          &:hover {
+            background-image: url("../../assets/img/whetherMv_2.png");
           }
         }
         > span {
@@ -1390,6 +1348,10 @@ export default {
                 li {
                   width: 100%;
                   height: 32px;
+                  .color {
+                    color: white;
+                    font-size: 15px;
+                  }
                   p {
                     text-align: center;
                     color: #989898;

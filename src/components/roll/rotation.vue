@@ -18,7 +18,12 @@
         </transition-group> -->
         <ul ref="banner" class="banner">
           <li v-for="item in imgList" :key="item.id">
-            <img :src="item.imageUrl" alt="" width="728.5px" height="285px" />
+            <img
+              v-lazy="item.imageUrl"
+              alt="轮播"
+              width="728.5px"
+              height="285px"
+            />
           </li>
         </ul>
         <ul>

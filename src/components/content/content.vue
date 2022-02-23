@@ -27,7 +27,7 @@
           <div class="singerContent">
             <ul>
               <li v-for="item in singerList.slice(0, 5)" :key="item.id">
-                <img :src="item.picUrl" alt="" width="62px" height="62px" />
+                <img v-lazy="item.picUrl" alt="" width="62px" height="62px" />
                 <div class="text">
                   <p>{{ item.name }}</p>
                   <p>{{ item.alias[0] }}</p>
@@ -44,7 +44,12 @@
           <div class="anchorContent">
             <ul>
               <li v-for="item in anchorList.slice(0, 5)" :key="item.id">
-                <img :src="item.avatarUrl" alt="" width="40px" height="40px" />
+                <img
+                  v-lazy="item.avatarUrl"
+                  alt=""
+                  width="40px"
+                  height="40px"
+                />
                 <div class="text">
                   <p>{{ item.nickName }}</p>
                 </div>

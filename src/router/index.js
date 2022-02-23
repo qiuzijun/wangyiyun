@@ -91,6 +91,14 @@ const routes = [
       }
     },
     {
+      path:'allMv',
+      name:"allMv",
+      component:()=>import('../views/allMv/allMv.vue'),
+      meta:{
+        title:'全部MV'
+      }
+    },
+    {
       path:'singerInformation',
       name:"singerInformation",
       component:()=>import('../views/singerInformation/singerInformation.vue'),

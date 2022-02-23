@@ -57,7 +57,7 @@
               </div>
             </div>
             <div class="lyricList">
-              <ul ref="lyric_ul">
+              <ul ref="lyric_ul" id="lyricList">
                 <li
                   v-for="(item, index) in songsInformation.lyric"
                   :key="index"
@@ -77,6 +77,12 @@
                   ></i
                 ></span>
               </p>
+              <i
+                data-clipboard-target="#lyricList"
+                class="el-icon-document-copy copy-link"
+                title="复制歌词"
+                @click="copy"
+              ></i>
             </div>
           </div>
         </div>
@@ -198,6 +204,9 @@
 </template>
 <script>
 import { lyric, comment, beSimilar, detail } from "@/api/http.js";
+import { mapState } from "vuex";
+import { Message } from "element-ui";
+
 export default {
   data() {
     return {
@@ -234,6 +243,24 @@ export default {
         this.songsInformation.lyricId = this.$route.params.id;
       }
     }
+  },
+  computed: {
+    ...mapState(["addId"]),
+  },
+  watch: {
+    addId(newName) {
+      if (newName) {
+        this.songsInformation.lyricId = newName;
+        //   获取歌词
+        this.getLyric();
+        // 获取评论
+        this.getComment();
+        // 获取相似音乐
+        this.getSimi();
+        // 获取歌曲详情
+        this.getMusicDetails();
+      }
+    },
   },
   methods: {
     //   获取歌词
@@ -357,6 +384,21 @@ export default {
       // 传递id值
       this.$store.dispatch("playId", id);
       // console.log(id);
+    },
+    // 复制歌词
+    copy() {
+      const clipboard = new this.Clipboard(".copy-link");
+      clipboard.on("success", function (e) {
+        e.clearSelection();
+        Message({
+          message: "复制成功",
+          type: "success",
+        });
+      });
+
+      clipboard.on("error", function () {
+        Message.error("复制失败");
+      });
     },
   },
   mounted() {
@@ -585,6 +627,16 @@ export default {
               color: #0c73c2;
               &:hover {
                 text-decoration: underline;
+                cursor: pointer;
+              }
+            }
+            .el-icon-document-copy {
+              font-size: 20px;
+              position: absolute;
+              top: 0;
+              right: 0;
+              &:hover {
+                color: #d3d3d3;
                 cursor: pointer;
               }
             }

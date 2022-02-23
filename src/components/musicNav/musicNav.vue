@@ -47,6 +47,10 @@ export default {
           id: 5,
           name: "新碟上架",
         },
+        {
+          id: 6,
+          name: "全部MV",
+        },
       ],
       //当前路由
       routeName: "推荐",

@@ -336,3 +336,13 @@ export function search(data={}){
 export function beSimilar(data={}){
     return axios.post('/api/simi/song?id='+data.id+'&realIP=116.25.146.177')
 }
+// 获取全部Mv
+export function getAllMv(data){
+    return axios.post('/api/mv/all?realIP=116.25.146.177&area='+data.area+'&type='+data.type+'&order='+data.order+'&limit='+data.limit+'&offset='+data.offset)
+    // return instance({
+    //         method:'post',
+    //         url:'/mv/all?realIP=116.25.146.177',
+    //         data
+    //     })
+}
+

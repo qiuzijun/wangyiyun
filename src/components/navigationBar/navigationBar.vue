@@ -150,7 +150,7 @@
         <img
           @mouseover="informationSow = false"
           @mouseout="informationSow = true"
-          :src="userInfo.data.profile.backgroundUrl"
+          :src="userInfo.profile.avatarUrl"
         />
         <div class="information" v-show="informationSow">
           <p>{{ information }}</p>
@@ -735,6 +735,9 @@ export default {
         console.log("授权登录成功");
         console.log(newName);
         clearInterval(this.setInterval);
+        // 刷新登录状态
+        this.loginRefresh();
+        // 登录状态
         this.getLoginStatus();
       }
     },
@@ -742,7 +745,9 @@ export default {
     userInfo: {
       handler(newName) {
         if (newName) {
-          // this.head = false;
+          this.head = false;
+        } else {
+          this.head = true;
         }
       },
     },
@@ -768,6 +773,7 @@ export default {
   },
   created() {
     if (JSON.parse(localStorage.getItem("userInfo"))) {
+      console.log(JSON.parse(localStorage.getItem("userInfo")));
       this.userInfo = JSON.parse(localStorage.getItem("userInfo"));
     }
 
@@ -1089,6 +1095,17 @@ export default {
       }
       this.code = res.data.code;
     },
+    // 刷新登录状态
+    async loginRefresh() {
+      let res;
+      try {
+        res = await axios.post("/api/login/refresh");
+      } catch (error) {
+        console.log(error);
+        return;
+      }
+      console.log(res + "---------");
+    },
     //登录状态
     async getLoginStatus() {
       const res = await axios({
@@ -1097,13 +1114,12 @@ export default {
       });
       if (res.data.data.profile == null) {
         this.head = true;
+        // 二维码状态
+        // this.getRqCodeState();
       } else {
         // 用户信息
         this.getAccount();
       }
-
-      // this.getAccount();
-      // this.getSubcount();
     },
     // 获取账号信息
     async getAccount() {
@@ -1120,19 +1136,6 @@ export default {
       this.loginShow = false;
       this.head = false;
     },
-    // 获取用户绑定信息
-    // async getSubcount() {
-    //   let res;
-    //   try {
-    //     res = await getSubcount({
-    //       // uid: this.userInfo.data.account.id,
-    //     });
-    //   } catch (error) {
-    //     console.log(error);
-    //     return;
-    //   }
-    //   console.log(res);
-    // },
     // 退出登录
     async outLogin() {
       try {
@@ -1142,6 +1145,10 @@ export default {
         return;
       }
       this.head = true;
+      this.userInfo = "";
+      localStorage.setItem("userInfo", JSON.stringify({}));
+      // 检查登录状态
+      this.getLoginStatus();
     },
     // 输入框输入
     change(fn, delay) {
@@ -1234,6 +1241,9 @@ export default {
   mounted() {
     this.$store.commit("loginShow", this.loginShow);
     this.getLoginStatus();
+  },
+  destroyed() {
+    clearInterval(this.setInterval);
   },
 };
 </script>

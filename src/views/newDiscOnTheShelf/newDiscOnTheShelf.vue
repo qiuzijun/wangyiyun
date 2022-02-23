@@ -23,7 +23,7 @@
                 @click="routeDisc(item.id)"
               />
               <img
-                :src="item.picUrl"
+                v-lazy="item.picUrl"
                 alt=""
                 class="list_img"
                 width="130px"
