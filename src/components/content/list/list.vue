@@ -199,6 +199,7 @@ export default {
         data.Id = index;
       });
       this.listId.push(this.soaringList);
+      this.getNewSong();
     },
     // 获取新歌
     async getNewSong() {
@@ -209,6 +210,7 @@ export default {
         data.Id = index;
       });
       this.listId.push(this.newSongList);
+      this.getOriginal();
     },
     // 获取原创
     async getOriginal() {
@@ -232,13 +234,7 @@ export default {
     },
   },
   mounted() {
-    let requestAll = [
-      this.getListInformation(),
-      this.getSoaring(),
-      this.getNewSong(),
-      this.getOriginal(),
-    ];
-    Promise.all(requestAll);
+    this.getListInformation(), this.getSoaring();
   },
 };
 </script>

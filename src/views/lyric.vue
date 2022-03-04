@@ -206,7 +206,7 @@
 import { lyric, comment, beSimilar, detail } from "@/api/http.js";
 import { mapState } from "vuex";
 import { Message } from "element-ui";
-
+// import { getWord } from "../util/word";
 export default {
   data() {
     return {
@@ -410,6 +410,8 @@ export default {
     this.getSimi();
     // 获取歌曲详情
     this.getMusicDetails();
+
+    // getWord({ name: "李四", order_date: "2020-02-26" });
   },
 };
 </script>

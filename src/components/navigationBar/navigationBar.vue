@@ -164,7 +164,11 @@
         @mouseout="informationSow = true"
       >
         <ul>
-          <li v-for="item in homeList" :key="item.id">
+          <li
+            v-for="item in homeList"
+            :key="item.id"
+            @click="routeUser(item.name, userInfo.account.id)"
+          >
             <i :class="item.icon"></i>
             <span>{{ item.name }}</span>
             <div class="information" v-show="item.name == '我的信息'">
@@ -486,10 +490,10 @@ import {
   search, //搜索
   outLogin, //退出登录
   getAccount,
-  // getSubcount,
 } from "../../api/http";
 import axios from "axios";
 import { mapState } from "vuex";
+import { setCookie } from "../../util/cookies";
 export default {
   name: "Nav",
   data() {
@@ -1054,7 +1058,7 @@ export default {
       let res;
       try {
         res = await getRqCodeKey({
-          t: new Date().getTime(),
+          timestamp: new Date().getTime(),
         });
       } catch (error) {
         console.log(error);
@@ -1072,7 +1076,7 @@ export default {
         res = await getRqCodeImg({
           key: this.key,
           qrimg: "base64",
-          t: new Date().getTime(),
+          timestamp: new Date().getTime(),
         });
       } catch (error) {
         console.log(error);
@@ -1087,13 +1091,18 @@ export default {
       try {
         res = await getRqCodeState({
           key: this.key,
-          t: new Date().getTime(),
+          timestamp: new Date().getTime(),
         });
       } catch (error) {
         console.log(error);
         return;
       }
       this.code = res.data.code;
+      // 获取cookie
+      if (this.code == 803) {
+        res.data.cookie = res.data.cookie.replace("HTTPOnly", "");
+        setCookie(res.data.cookie);
+      }
     },
     // 刷新登录状态
     async loginRefresh() {
@@ -1125,7 +1134,9 @@ export default {
     async getAccount() {
       let res;
       try {
-        res = await getAccount({});
+        res = await getAccount({
+          timestamp: new Date().getTime(),
+        });
       } catch (error) {
         console.log(error);
         return;
@@ -1146,7 +1157,7 @@ export default {
       }
       this.head = true;
       this.userInfo = "";
-      localStorage.setItem("userInfo", JSON.stringify({}));
+      localStorage.setItem("userInfo", null);
       // 检查登录状态
       this.getLoginStatus();
     },
@@ -1235,6 +1246,16 @@ export default {
         params: { id },
       });
       localStorage.setItem("songListId", id);
+    },
+    // 跳转主页
+    routeUser(name, id) {
+      if (name == "我的主页") {
+        this.$router.push({
+          name: "user",
+          params: { id },
+        });
+        localStorage.setItem("userId", id);
+      }
     },
   },
 

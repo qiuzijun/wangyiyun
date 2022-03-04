@@ -138,6 +138,14 @@ const routes = [
         title:'新碟内容'
       }
     },
+    {
+      path:'user',
+      name:"user",
+      component:()=>import('../views/user.vue'),
+      meta:{
+        title:'我的主页'
+      }
+    },
   ]
   },
   {

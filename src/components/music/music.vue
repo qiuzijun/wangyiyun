@@ -59,7 +59,7 @@
             <span
               @click="routeSinger(item.id, item.name, songsDetail.Url)"
               v-for="item in songsDetail.singer"
-              :key="item.id"
+              :key="item.id + item.name"
               >{{ item.name }}/</span
             >
 
@@ -109,7 +109,7 @@
         <ul>
           <li
             v-for="(item, index) in voiceList"
-            :key="index"
+            :key="item.id"
             @mouseover="voice = index"
             @mouseout="voice = -1"
             @click.stop="voiceClick(index)"
@@ -351,14 +351,17 @@ export default {
       ],
       voiceList: [
         {
+          id: 5463736573,
           original: require("@/assets/img/yl_01.png"),
           brighten: require("@/assets/img/yl_02.png"),
         },
         {
-          original: require("@/assets/img/xh_01.png"),
-          brighten: require("@/assets/img/xh_02.png"),
+          id: 675378678468,
+          original: require("@/assets/img/sx_01.png"),
+          brighten: require("@/assets/img/sx_02.png"),
         },
         {
+          id: 764867798679,
           original: require("@/assets/img/lie_01.png"),
           brighten: require("@/assets/img/lie_02.png"),
         },
@@ -392,6 +395,15 @@ export default {
       songsId: "",
       // 歌曲地址
       songsUrl: "",
+      // 播放模式的选择
+      playBackMode: {
+        currentMode: 0, //默认播放模式为顺序播放
+        pattern: {
+          Sequential: 0, //顺序播放
+          loop: 1, //循环播放
+          random: 2, //随机播放
+        },
+      },
     };
   },
   watch: {
@@ -601,6 +613,27 @@ export default {
         // 播放完毕回归歌曲进度时间
         this.time = "00:00";
       });
+      // 播放模式的选择
+      const { currentMode, pattern } = this.playBackMode;
+      switch (currentMode) {
+        case pattern.Sequential:
+          // 顺序播放
+          this.Sequential();
+          break;
+        case pattern.loop:
+          // 循环播放
+          this.loop();
+          break;
+        case pattern.random:
+          // 随机播放
+          this.random();
+          break;
+        default:
+          break;
+      }
+    },
+    // 顺序播放
+    Sequential() {
       // 播放完毕播放下一首
       if (this.musicList.length > 0) {
         for (let i = 0; i < this.musicList.length; i++) {
@@ -613,6 +646,21 @@ export default {
           }
         }
       }
+    },
+    // 循环播放
+    loop() {
+      this.$store.dispatch("playId", this.songsId);
+      //   切换成播放键
+      this.img_play = this.playList.musicPlay_02;
+      this.$refs.audioRef.play();
+    },
+    // 随机播放
+    random() {
+      // 播放列表长度
+      let length = this.musicList.length;
+      // 生成随机数
+      let i = Math.floor(Math.random() * length);
+      this.$store.dispatch("playId", this.musicList[i].id);
     },
     // 音乐实时时间
     audioTime(e) {
@@ -717,12 +765,12 @@ export default {
       // 循环、循序、单曲循环图片
       let voiceList = [
         {
-          original: require("@/assets/img/xh_01.png"),
-          brighten: require("@/assets/img/xh_02.png"),
-        },
-        {
           original: require("@/assets/img/sx_01.png"),
           brighten: require("@/assets/img/sx_02.png"),
+        },
+        {
+          original: require("@/assets/img/xh_01.png"),
+          brighten: require("@/assets/img/xh_02.png"),
         },
         {
           original: require("@/assets/img/sui_01.png"),
@@ -735,6 +783,8 @@ export default {
         this.number = 0;
       }
       if (index == 1) {
+        // 模式切换
+        this.playBackMode.currentMode = this.number;
         this.voiceList[index] = voiceList[this.number];
       }
       // 音量点击隐藏显示

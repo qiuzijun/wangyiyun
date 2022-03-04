@@ -111,7 +111,7 @@ export default {
     },
     // 播放新碟
     play(id) {
-      console.log(id);
+      // console.log(id);
       this.$store.dispatch("discId", id);
     },
     // 跳转新碟页面
